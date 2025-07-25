@@ -3,22 +3,25 @@ import { WorkTimeForm } from './components/WorkTimeForm';
 import { WorkHistory } from './components/WorkHistory';
 import { MonthlySummary } from './components/MonthlySummary';
 import { Settings } from './components/Settings';
+import { SalarySettings } from './components/SalarySettings';
 import { useOvertimeTracker } from './hooks/useOvertimeTracker';
 import { WorkRecord } from './types';
 import './index.css';
 
-type TabType = 'input' | 'history' | 'monthly' | 'settings';
+type TabType = 'input' | 'history' | 'monthly' | 'settings' | 'salary';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('input');
   const {
     records,
     settings,
+    salarySettings,
     currentRecord,
     saveRecord,
     deleteRecord,
     clearAllRecords,
     updateSettings,
+    updateSalarySettings,
     getTotalOvertimeHours,
     editRecord,
     cancelEdit
@@ -84,7 +87,13 @@ const App: React.FC = () => {
           className={`tab ${activeTab === 'settings' ? 'active' : ''}`}
           onClick={() => setActiveTab('settings')}
         >
-          設定
+          勤務設定
+        </button>
+        <button
+          className={`tab ${activeTab === 'salary' ? 'active' : ''}`}
+          onClick={() => setActiveTab('salary')}
+        >
+          給与設定
         </button>
       </nav>
 
@@ -92,6 +101,7 @@ const App: React.FC = () => {
         {activeTab === 'input' && (
           <WorkTimeForm
             settings={settings}
+            salarySettings={salarySettings}
             onSave={handleSaveRecord}
             onCancel={cancelEdit}
             currentRecord={currentRecord}
@@ -101,6 +111,7 @@ const App: React.FC = () => {
         {activeTab === 'history' && (
           <WorkHistory
             records={records}
+            salarySettings={salarySettings}
             onDeleteRecord={handleDeleteRecord}
             onEditRecord={handleEditRecord}
             onClearAll={handleClearAllRecords}
@@ -108,13 +119,23 @@ const App: React.FC = () => {
         )}
 
         {activeTab === 'monthly' && (
-          <MonthlySummary records={records} />
+          <MonthlySummary 
+            records={records}
+            salarySettings={salarySettings}
+          />
         )}
 
         {activeTab === 'settings' && (
           <Settings
             settings={settings}
             onUpdateSettings={updateSettings}
+          />
+        )}
+
+        {activeTab === 'salary' && (
+          <SalarySettings
+            settings={salarySettings}
+            onUpdateSettings={updateSalarySettings}
           />
         )}
       </main>

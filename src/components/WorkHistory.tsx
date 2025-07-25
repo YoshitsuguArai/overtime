@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { WorkRecord } from '../types';
+import { WorkRecord, SalarySettings } from '../types';
 import { formatOvertimeDisplay, formatShortageDisplay, minutesToTimeString } from '../utils/timeCalculations';
+import { calculateOvertimePayDetails, formatCurrency } from '../utils/salaryCalculations';
 
 interface WorkHistoryProps {
   records: WorkRecord[];
+  salarySettings: SalarySettings;
   onDeleteRecord: (recordId: string) => void;
   onEditRecord: (record: WorkRecord) => void;
   onClearAll: () => void;
@@ -11,6 +13,7 @@ interface WorkHistoryProps {
 
 export const WorkHistory: React.FC<WorkHistoryProps> = ({
   records,
+  salarySettings,
   onDeleteRecord,
   onEditRecord,
   onClearAll
@@ -88,57 +91,74 @@ export const WorkHistory: React.FC<WorkHistoryProps> = ({
       </div>
 
       <div className="records-list">
-        {filteredRecords.map((record) => (
-          <div key={record.id} className="record-item">
-            <div className="record-date">
-              {formatDate(record.date)}
-            </div>
-            
-            <div className="record-times">
-              <span className="work-time">
-                {record.startTime} - {record.endTime}
-              </span>
-              <span className="break-time">
-                休憩: {minutesToTimeString(record.breakTime)}
-              </span>
-            </div>
-            
-            <div className="record-time-status">
-              {record.overtimeHours > 0 && (
-                <div className="record-overtime has-overtime">
-                  +{formatOvertimeDisplay(record.overtimeHours)}
+        {filteredRecords.map((record) => {
+          const payDetails = calculateOvertimePayDetails(record, salarySettings);
+          
+          return (
+            <div key={record.id} className="record-item">
+              <div className="record-date">
+                {formatDate(record.date)}
+              </div>
+              
+              <div className="record-times">
+                <span className="work-time">
+                  {record.startTime} - {record.endTime}
+                </span>
+                <span className="break-time">
+                  休憩: {minutesToTimeString(record.breakTime)}
+                </span>
+              </div>
+              
+              <div className="record-time-status">
+                {record.overtimeHours > 0 && (
+                  <div className="record-overtime has-overtime">
+                    +{formatOvertimeDisplay(record.overtimeHours)}
+                  </div>
+                )}
+                {(record.shortageHours || 0) > 0 && (
+                  <div className="record-shortage has-shortage">
+                    -{formatShortageDisplay(record.shortageHours || 0)}
+                  </div>
+                )}
+                {record.overtimeHours === 0 && (record.shortageHours || 0) === 0 && (
+                  <div className="record-standard">
+                    標準時間
+                  </div>
+                )}
+              </div>
+
+              <div className="record-pay">
+                <div className="pay-amount">
+                  {formatCurrency(payDetails.totalPay)}
                 </div>
-              )}
-              {(record.shortageHours || 0) > 0 && (
-                <div className="record-shortage has-shortage">
-                  -{formatShortageDisplay(record.shortageHours || 0)}
-                </div>
-              )}
-              {record.overtimeHours === 0 && (record.shortageHours || 0) === 0 && (
-                <div className="record-standard">
-                  標準時間
-                </div>
-              )}
+                {payDetails.totalPay > 0 && (
+                  <div className="pay-breakdown-mini">
+                    {payDetails.regularOvertimePay > 0 && <span>残業</span>}
+                    {payDetails.holidayPay > 0 && <span>休日</span>}
+                    {payDetails.lateNightPay > 0 && <span>深夜</span>}
+                  </div>
+                )}
+              </div>
+              
+              <div className="record-actions">
+                <button
+                  onClick={() => onEditRecord(record)}
+                  className="btn btn-edit"
+                  title="この記録を編集"
+                >
+                  編集
+                </button>
+                <button
+                  onClick={() => onDeleteRecord(record.id)}
+                  className="btn btn-delete"
+                  title="この記録を削除"
+                >
+                  削除
+                </button>
+              </div>
             </div>
-            
-            <div className="record-actions">
-              <button
-                onClick={() => onEditRecord(record)}
-                className="btn btn-edit"
-                title="この記録を編集"
-              >
-                編集
-              </button>
-              <button
-                onClick={() => onDeleteRecord(record.id)}
-                className="btn btn-delete"
-                title="この記録を削除"
-              >
-                削除
-              </button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="history-actions">
