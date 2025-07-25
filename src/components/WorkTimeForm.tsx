@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { TimeInput } from './TimeInput';
 import { OvertimeDisplay } from './OvertimeDisplay';
-import { WorkRecord, OvertimeSettings } from '../types';
+import { OvertimePayDisplay } from './OvertimePayDisplay';
+import { ProvisionalOvertimePayDisplay } from './ProvisionalOvertimePayDisplay';
+import { WorkRecord, OvertimeSettings, SalarySettings } from '../types';
 import { calculateWorkTimeDetails, getCurrentTimeString, getTodayDateString } from '../utils/timeCalculations';
 
 interface WorkTimeFormProps {
   settings: OvertimeSettings;
+  salarySettings: SalarySettings;
   onSave: (record: WorkRecord) => void;
   onCancel?: () => void;
   currentRecord?: Partial<WorkRecord> | null;
@@ -13,6 +16,7 @@ interface WorkTimeFormProps {
 
 export const WorkTimeForm: React.FC<WorkTimeFormProps> = ({
   settings,
+  salarySettings,
   onSave,
   onCancel,
   currentRecord
@@ -168,6 +172,18 @@ export const WorkTimeForm: React.FC<WorkTimeFormProps> = ({
         breakTime={breakTime}
         settings={settings}
         workDetails={workDetails}
+      />
+
+      <ProvisionalOvertimePayDisplay
+        date={date}
+        startTime={startTime}
+        endTime={endTime}
+        breakTime={breakTime}
+        actualWorkHours={workDetails.actualWorkHours}
+        overtimeHours={workDetails.overtimeHours}
+        shortageHours={workDetails.shortageHours}
+        standardWorkHours={settings.standardWorkHours}
+        salarySettings={salarySettings}
       />
 
       <div className="form-actions">

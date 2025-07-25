@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useLocalStorage } from './useLocalStorage';
-import { WorkRecord, OvertimeSettings } from '../types';
+import { WorkRecord, OvertimeSettings, SalarySettings } from '../types';
 import { calculateWorkTimeDetails } from '../utils/timeCalculations';
 
 const DEFAULT_SETTINGS: OvertimeSettings = {
@@ -8,9 +8,21 @@ const DEFAULT_SETTINGS: OvertimeSettings = {
   breakTime: 60 // 60分
 };
 
+const DEFAULT_SALARY_SETTINGS: SalarySettings = {
+  baseSalary: 250000,
+  workingDaysPerMonth: 22,
+  overtimeRate: 1.25,
+  holidayRate: 1.35,
+  lateNightRate: 1.25,
+  lateNightStartTime: '22:00',
+  lateNightEndTime: '05:00',
+  standardWorkHours: 8
+};
+
 export const useOvertimeTracker = () => {
   const [records, setRecords] = useLocalStorage<WorkRecord[]>('overtime-records', []);
   const [settings, setSettings] = useLocalStorage<OvertimeSettings>('overtime-settings', DEFAULT_SETTINGS);
+  const [salarySettings, setSalarySettings] = useLocalStorage<SalarySettings>('salary-settings', DEFAULT_SALARY_SETTINGS);
   const [currentRecord, setCurrentRecord] = useState<Partial<WorkRecord> | null>(null);
 
   // 既存データを新しい形式に変換
@@ -91,6 +103,10 @@ export const useOvertimeTracker = () => {
     setSettings(prevSettings => ({ ...prevSettings, ...newSettings }));
   }, [setSettings]);
 
+  const updateSalarySettings = useCallback((newSalarySettings: Partial<SalarySettings>) => {
+    setSalarySettings(prevSettings => ({ ...prevSettings, ...newSalarySettings }));
+  }, [setSalarySettings]);
+
   const getTotalOvertimeHours = useCallback(() => {
     return records.reduce((total, record) => total + record.overtimeHours, 0);
   }, [records]);
@@ -115,11 +131,13 @@ export const useOvertimeTracker = () => {
   return {
     records,
     settings,
+    salarySettings,
     currentRecord,
     saveRecord,
     deleteRecord,
     clearAllRecords,
     updateSettings,
+    updateSalarySettings,
     getTotalOvertimeHours,
     getMonthlyOvertimeHours,
     setCurrentRecord,

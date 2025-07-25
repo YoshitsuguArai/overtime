@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { WorkRecord } from '../types';
+import { WorkRecord, SalarySettings } from '../types';
 import { formatOvertimeDisplay, formatShortageDisplay } from '../utils/timeCalculations';
 import { 
   getAvailableMonths, 
@@ -7,9 +7,11 @@ import {
   getCurrentMonthKey, 
   isDateInMonth 
 } from '../utils/dateUtils';
+import { calculateOvertimePayDetails, formatCurrency } from '../utils/salaryCalculations';
 
 interface MonthlySummaryProps {
   records: WorkRecord[];
+  salarySettings: SalarySettings;
 }
 
 interface MonthlyStats {
@@ -20,9 +22,10 @@ interface MonthlyStats {
   averageOvertimePerDay: number;
   maxOvertimeDay: { date: string; hours: number };
   totalWorkingHours: number;
+  estimatedOvertimePay: number;
 }
 
-export const MonthlySummary: React.FC<MonthlySummaryProps> = ({ records }) => {
+export const MonthlySummary: React.FC<MonthlySummaryProps> = ({ records, salarySettings }) => {
   const availableMonths = getAvailableMonths(records);
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonthKey());
 
@@ -39,7 +42,8 @@ export const MonthlySummary: React.FC<MonthlySummaryProps> = ({ records }) => {
         workingDays: 0,
         averageOvertimePerDay: 0,
         maxOvertimeDay: { date: '', hours: 0 },
-        totalWorkingHours: 0
+        totalWorkingHours: 0,
+        estimatedOvertimePay: 0
       };
     }
 
@@ -85,9 +89,20 @@ export const MonthlySummary: React.FC<MonthlySummaryProps> = ({ records }) => {
         date: maxOvertimeRecord.date, 
         hours: maxOvertimeRecord.overtimeHours 
       },
-      totalWorkingHours
+      totalWorkingHours,
+      estimatedOvertimePay: netOvertimeHours > 0 ? calculateOvertimePayDetails({
+        id: 'monthly-summary',
+        date: new Date().toISOString().split('T')[0],
+        startTime: '09:00',
+        endTime: '18:00',
+        breakTime: 60,
+        overtimeHours: netOvertimeHours,
+        shortageHours: 0,
+        actualWorkHours: 8,
+        standardWorkHours: 8
+      }, salarySettings).totalPay : 0
     };
-  }, [records, selectedMonth]);
+  }, [records, selectedMonth, salarySettings]);
 
   const monthRecords = records.filter(record => 
     isDateInMonth(record.date, selectedMonth)
@@ -165,7 +180,7 @@ export const MonthlySummary: React.FC<MonthlySummaryProps> = ({ records }) => {
         <div className="summary-card total-working">
           <h3>月間労働時間</h3>
           <div className="value">
-            {monthlyStats.totalWorkingHours.toFixed(1)}時間
+            {formatOvertimeDisplay(monthlyStats.totalWorkingHours)}
           </div>
         </div>
       </div>
@@ -179,6 +194,15 @@ export const MonthlySummary: React.FC<MonthlySummaryProps> = ({ records }) => {
               {formatOvertimeDisplay(monthlyStats.maxOvertimeDay.hours)}
             </span>
           </p>
+
+          {monthlyStats.estimatedOvertimePay > 0 && (
+            <>
+              <h3>予想残業代</h3>
+              <p className="overtime-pay">
+                {formatCurrency(monthlyStats.estimatedOvertimePay)}
+              </p>
+            </>
+          )}
         </div>
       )}
 
