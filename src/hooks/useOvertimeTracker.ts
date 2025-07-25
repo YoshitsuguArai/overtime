@@ -58,26 +58,32 @@ export const useOvertimeTracker = () => {
     if (needsMigration) {
       setRecords(migrateRecords);
     }
-  }, []); // 初回のみ実行
+  }, [records, setRecords]);
 
   const saveRecord = useCallback((record: WorkRecord) => {
+    // 所定労働時間を設定から取得して追加
+    const recordWithSettings = {
+      ...record,
+      standardWorkHours: settings.standardWorkHours
+    };
+
     setRecords(prevRecords => {
-      const existingIndex = prevRecords.findIndex(r => r.id === record.id);
+      const existingIndex = prevRecords.findIndex(r => r.id === recordWithSettings.id);
       if (existingIndex >= 0) {
         // 既存レコードを更新
         const updatedRecords = [...prevRecords];
-        updatedRecords[existingIndex] = record;
+        updatedRecords[existingIndex] = recordWithSettings;
         return updatedRecords;
       } else {
         // 新しいレコードを追加する前に、同日の記録がないかチェック
-        const sameDate = prevRecords.find(r => r.date === record.date);
+        const sameDate = prevRecords.find(r => r.date === recordWithSettings.date);
         if (sameDate) {
           // 同日の記録が既に存在する場合は確認
-          if (window.confirm(`${record.date}の記録が既に存在します。上書きしますか？`)) {
+          if (window.confirm(`${recordWithSettings.date}の記録が既に存在します。上書きしますか？`)) {
             // 既存の同日記録を更新
-            const sameDateIndex = prevRecords.findIndex(r => r.date === record.date);
+            const sameDateIndex = prevRecords.findIndex(r => r.date === recordWithSettings.date);
             const updatedRecords = [...prevRecords];
-            updatedRecords[sameDateIndex] = { ...record, id: sameDate.id };
+            updatedRecords[sameDateIndex] = { ...recordWithSettings, id: sameDate.id };
             return updatedRecords;
           } else {
             // キャンセルされた場合は変更しない
@@ -85,11 +91,11 @@ export const useOvertimeTracker = () => {
           }
         }
         // 同日の記録がない場合は新規追加
-        return [...prevRecords, record];
+        return [...prevRecords, recordWithSettings];
       }
     });
     setCurrentRecord(null);
-  }, [setRecords]);
+  }, [setRecords, settings.standardWorkHours]);
 
   const deleteRecord = useCallback((recordId: string) => {
     setRecords(prevRecords => prevRecords.filter(r => r.id !== recordId));
