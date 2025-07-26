@@ -6,6 +6,7 @@ import { Settings } from './components/Settings';
 import { SalarySettings } from './components/SalarySettings';
 import { useOvertimeTracker } from './hooks/useOvertimeTracker';
 import { WorkRecord } from './types';
+import { formatOvertimeDisplay } from './utils/timeCalculations';
 import './index.css';
 
 type TabType = 'input' | 'history' | 'monthly' | 'settings' | 'salary';
@@ -59,7 +60,7 @@ const App: React.FC = () => {
         <p>フレックス勤務対応 - 出勤・退勤時間から暫定残業時間を計算</p>
         {totalOvertimeHours > 0 && (
           <p>
-            総残業時間: <strong>{totalOvertimeHours.toFixed(2)}時間</strong>
+            総残業時間: <strong>{formatOvertimeDisplay(totalOvertimeHours)}</strong>
           </p>
         )}
       </header>

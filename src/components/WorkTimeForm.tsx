@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { TimeInput } from './TimeInput';
 import { OvertimeDisplay } from './OvertimeDisplay';
-import { OvertimePayDisplay } from './OvertimePayDisplay';
 import { ProvisionalOvertimePayDisplay } from './ProvisionalOvertimePayDisplay';
 import { WorkRecord, OvertimeSettings, SalarySettings } from '../types';
 import { calculateWorkTimeDetails, getCurrentTimeString, getTodayDateString } from '../utils/timeCalculations';
