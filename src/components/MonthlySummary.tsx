@@ -7,7 +7,7 @@ import {
   getCurrentMonthKey, 
   isDateInMonth 
 } from '../utils/dateUtils';
-import { calculateOvertimePayDetails, formatCurrency } from '../utils/salaryCalculations';
+import { calculateMonthlySalarySummary, formatCurrency } from '../utils/salaryCalculations';
 
 interface MonthlySummaryProps {
   records: WorkRecord[];
@@ -79,6 +79,9 @@ export const MonthlySummary: React.FC<MonthlySummaryProps> = ({ records, salaryS
       record.overtimeHours > max.overtimeHours ? record : max
     );
 
+    // 月間給与サマリーを正確に計算
+    const monthlySalarySummary = calculateMonthlySalarySummary(monthRecords, salarySettings);
+
     return {
       totalOvertimeHours,
       totalShortageHours,
@@ -90,17 +93,7 @@ export const MonthlySummary: React.FC<MonthlySummaryProps> = ({ records, salaryS
         hours: maxOvertimeRecord.overtimeHours 
       },
       totalWorkingHours,
-      estimatedOvertimePay: netOvertimeHours > 0 ? calculateOvertimePayDetails({
-        id: 'monthly-summary',
-        date: new Date().toISOString().split('T')[0],
-        startTime: '09:00',
-        endTime: '18:00',
-        breakTime: 60,
-        overtimeHours: netOvertimeHours,
-        shortageHours: 0,
-        actualWorkHours: 8,
-        standardWorkHours: 8
-      }, salarySettings).totalPay : 0
+      estimatedOvertimePay: monthlySalarySummary.totalOvertimePay
     };
   }, [records, selectedMonth, salarySettings]);
 
