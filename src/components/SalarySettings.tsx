@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { SalarySettings as SalarySettingsType } from '../types';
 import { formatCurrency, calculateHourlyWage } from '../utils/salaryCalculations';
+import { getCurrentMonthWorkingDays } from '../utils/timeCalculations';
 
 interface SalarySettingsProps {
   settings: SalarySettingsType;
@@ -12,8 +13,9 @@ export const SalarySettings: React.FC<SalarySettingsProps> = ({
   onUpdateSettings
 }) => {
   const [baseSalary, setBaseSalary] = useState(settings.baseSalary);
-  const [workingDaysPerMonth, setWorkingDaysPerMonth] = useState(settings.workingDaysPerMonth);
-  const [standardWorkHours, setStandardWorkHours] = useState(settings.standardWorkHours);
+  // 営業日数は自動計算するため、現在月の営業日数を使用
+  const workingDaysPerMonth = getCurrentMonthWorkingDays();
+  // standardWorkHoursは設定画面で管理するため削除
   const [overtimeRate, setOvertimeRate] = useState(settings.overtimeRate);
   const [holidayRate, setHolidayRate] = useState(settings.holidayRate);
   const [lateNightRate, setLateNightRate] = useState(settings.lateNightRate);
@@ -23,7 +25,7 @@ export const SalarySettings: React.FC<SalarySettingsProps> = ({
   const currentSettings = {
     baseSalary,
     workingDaysPerMonth,
-    standardWorkHours,
+    standardWorkHours: settings.standardWorkHours, // 設定画面の値を使用
     overtimeRate,
     holidayRate,
     lateNightRate,
@@ -37,7 +39,7 @@ export const SalarySettings: React.FC<SalarySettingsProps> = ({
     onUpdateSettings({
       baseSalary,
       workingDaysPerMonth,
-      standardWorkHours,
+      standardWorkHours: settings.standardWorkHours, // 設定画面の値を使用
       overtimeRate,
       holidayRate,
       lateNightRate,
@@ -49,8 +51,8 @@ export const SalarySettings: React.FC<SalarySettingsProps> = ({
 
   const handleReset = () => {
     setBaseSalary(250000);
-    setWorkingDaysPerMonth(22);
-    setStandardWorkHours(8);
+    // workingDaysPerMonthは自動計算されるため削除
+    // standardWorkHoursは設定画面で管理するため削除
     setOvertimeRate(1.25);
     setHolidayRate(1.35);
     setLateNightRate(1.25);
@@ -83,35 +85,23 @@ export const SalarySettings: React.FC<SalarySettingsProps> = ({
           </div>
 
           <div className="setting-item">
-            <label htmlFor="working-days">
-              月の所定労働日数:
+            <label>
+              月の営業日数（自動計算）:
             </label>
-            <input
-              id="working-days"
-              type="number"
-              value={workingDaysPerMonth}
-              onChange={(e) => setWorkingDaysPerMonth(Number(e.target.value))}
-              min="15"
-              max="31"
-              step="1"
-            />
-            <span className="setting-unit">日</span>
+            <div className="calculated-value">
+              <strong>{getCurrentMonthWorkingDays()}日</strong>
+              <span className="setting-help">（土日祝日を除く）</span>
+            </div>
           </div>
 
           <div className="setting-item">
-            <label htmlFor="standard-work-hours">
+            <label>
               1日の所定労働時間:
             </label>
-            <input
-              id="standard-work-hours"
-              type="number"
-              value={standardWorkHours}
-              onChange={(e) => setStandardWorkHours(Number(e.target.value))}
-              min="4"
-              max="12"
-              step="0.5"
-            />
-            <span className="setting-unit">時間</span>
+            <div className="calculated-value">
+              <strong>{settings.standardWorkHours}時間</strong>
+              <span className="setting-help">（設定画面で変更可能）</span>
+            </div>
           </div>
 
           <div className="calculated-wage">

@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useLocalStorage } from './useLocalStorage';
 import { WorkRecord, OvertimeSettings, SalarySettings } from '../types';
-import { calculateWorkTimeDetails } from '../utils/timeCalculations';
+import { calculateWorkTimeDetails, getCurrentMonthWorkingDays, getWorkingDaysInMonth } from '../utils/timeCalculations';
 
 const DEFAULT_SETTINGS: OvertimeSettings = {
   standardWorkHours: 8,
@@ -10,7 +10,7 @@ const DEFAULT_SETTINGS: OvertimeSettings = {
 
 const DEFAULT_SALARY_SETTINGS: SalarySettings = {
   baseSalary: 250000,
-  workingDaysPerMonth: 22,
+  workingDaysPerMonth: getCurrentMonthWorkingDays(),
   overtimeRate: 1.25,
   holidayRate: 1.35,
   lateNightRate: 1.25,
@@ -126,6 +126,10 @@ export const useOvertimeTracker = () => {
       .reduce((total, record) => total + record.overtimeHours, 0);
   }, [records]);
 
+  const getWorkingDaysForMonth = useCallback((year: number, month: number) => {
+    return getWorkingDaysInMonth(year, month);
+  }, []);
+
   const editRecord = useCallback((record: WorkRecord) => {
     setCurrentRecord(record);
   }, []);
@@ -146,6 +150,7 @@ export const useOvertimeTracker = () => {
     updateSalarySettings,
     getTotalOvertimeHours,
     getMonthlyOvertimeHours,
+    getWorkingDaysForMonth,
     setCurrentRecord,
     editRecord,
     cancelEdit
